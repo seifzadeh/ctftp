@@ -637,4 +637,18 @@ Contributions are welcome!
   - Better observability and event formats.
   - Integrations with other provisioning or monitoring systems.
 
+
+## Prebuilt binaries
+
+Prebuilt binaries are available on the [Releases](../../releases) page.
+
+Each release typically includes:
+
+- `ctftp-ubuntu-latest` – dynamically linked Linux binary.
+- `ctftp-static-ubuntu-latest` – statically linked Linux binary (if the static toolchain is available).
+- `ctftp-macos-latest` – macOS binary.
+- `ctftp-static-macos-latest` – macOS static binary (best-effort).
+- (Optional) `ctftp-freebsd` / `ctftp-static-freebsd` – if you use a self-hosted FreeBSD runner.
+
+
 Thank you for using and contributing to **ctftp**!
