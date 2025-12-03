@@ -8,6 +8,10 @@ on:
     types: [ published ]
   workflow_dispatch:
 
+# English: Needed so the GitHub token can upload assets to a release
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build on ubuntu-latest
@@ -35,19 +39,22 @@ jobs:
 
       - name: Prepare artifacts
         run: |
-          mkdir -p artifacts
+          mkdir -p dist
           if [ -f ./ctftp ]; then
-            cp ./ctftp "artifacts/ctftp-linux"
+            cp ./ctftp dist/ctftp-linux
           fi
           if [ -f ./ctftp-static ]; then
-            cp ./ctftp-static "artifacts/ctftp-static-linux"
+            cp ./ctftp-static dist/ctftp-static-linux
           fi
+          echo "Dist contents:"
+          ls -l dist
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ctftp-linux-${{ github.sha }}
-          path: artifacts/
+          # English: A fixed artifact name so we can easily download it later
+          name: ctftp-linux
+          path: dist/
           if-no-files-found: ignore
 
   release:
@@ -57,20 +64,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download all build artifacts
+      - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
-          path: ./artifacts
+          name: ctftp-linux
+          path: ./dist
 
-      - name: List downloaded artifacts (debug)
+      - name: List downloaded files (debug)
         run: |
-          ls -R ./artifacts
+          echo "Downloaded files:"
+          ls -R ./dist
 
       - name: Upload binaries to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifacts/**/ctftp-linux
-            artifacts/**/ctftp-static-linux
+            dist/ctftp-linux
+            dist/ctftp-static-linux
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
