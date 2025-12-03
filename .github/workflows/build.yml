@@ -2,60 +2,51 @@ name: Build ctftp
 
 on:
   push:
-    branches:
-      - main
-      - master
+    branches: [ main, master ]
   pull_request:
   release:
-    types:
-      - published
+    types: [ published ]
+  workflow_dispatch:
 
 jobs:
   build:
-    name: Build on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
+    name: Build on ubuntu-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install build dependencies (Linux)
-        if: runner.os == 'Linux'
+      - name: Install build dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential
 
-      # macOS already has a compiler toolchain available
-
       - name: Build normal binary
         run: |
-          make clean
+          make clean || true
           make
 
       - name: Build static binary (best-effort)
-        # English: Do not fail the whole job if static build is not possible
         continue-on-error: true
         run: |
-          make clean
+          make clean || true
           make static
 
       - name: Prepare artifacts
         run: |
           mkdir -p artifacts
           if [ -f ./ctftp ]; then
-            cp ./ctftp "artifacts/ctftp-${{ runner.os }}"
+            cp ./ctftp "artifacts/ctftp-linux"
           fi
           if [ -f ./ctftp-static ]; then
-            cp ./ctftp-static "artifacts/ctftp-static-${{ runner.os }}"
+            cp ./ctftp-static "artifacts/ctftp-static-linux"
           fi
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ctftp-${{ runner.os }}-${{ github.sha }}
+          name: ctftp-linux-${{ github.sha }}
           path: artifacts/
           if-no-files-found: ignore
 
@@ -79,7 +70,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifacts/**/ctftp-*
-            artifacts/**/ctftp-static-*
+            artifacts/**/ctftp-linux
+            artifacts/**/ctftp-static-linux
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
